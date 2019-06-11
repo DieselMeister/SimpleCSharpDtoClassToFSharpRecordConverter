@@ -10,4 +10,4 @@ The Server is other than in the SAFE-Template an Azure Function.
 * You have to start the azure function manually.
 * very different boilerplate inside the C# dto class can cause a parsing error.
 
-## Please be aware, that this is only a Test Project to lean a little of FParsec. I am no expert in parsing and it is hard to understand and harder to write elegant code. My code is far from elegant or even readable ... at least the "domain logic" XD
+## Please be aware, that this is only a Test Project to learn a little of FParsec. I am no expert in parsing and it is hard to understand and harder to write elegant code. My code is far from elegant or even readable ... at least the "domain logic" XD
