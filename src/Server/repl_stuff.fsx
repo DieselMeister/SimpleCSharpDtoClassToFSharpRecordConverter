@@ -20,6 +20,7 @@ let wordWithoutSpacesAndAllowedSpecialCharacters (c:char list):Parser<string,Nod
 type Expr =
     | Class of string * Expr list
     | Property of string * string
+    | Comment of string
     | Scope of Expr list
     | Rest of string
     | Nothing
@@ -78,9 +79,12 @@ let propertyNameExpr:Parser<string,NodeState> = spaces >>. wordWithoutSpaces .>>
 let propertyExpr:Parser<Expr,NodeState> = propertyTypeExpr .>>. propertyNameExpr .>> scopeExpr |>> (fun (x,y) -> Property (x,y))
 let manyPropertyExpr:Parser<Expr list,NodeState> = many1 ( propertyExpr )
 
+// Comments
 
+let commentExpr:Parser<Expr,NodeState> =
+    str "//" >>. many1 (satisfy (fun x -> x<>'\n')) |>> (fun l -> System.String(l |> List.toArray) |> Comment)
 
-
+test commentExpr "// mein comment \r\n"
 
 test (many1 restParser) "bla ; bla"
 test scopeExpr "{ get; set; } { get; set; }"
@@ -129,7 +133,7 @@ let classesExpr =
 
 
 
-cassParseExprImpl := many1 (choice [attempt classExpr;attempt propertyExpr;attempt scopeExpr;restParser] )
+cassParseExprImpl := many1 (choice [attempt classExpr;attempt propertyExpr;attempt commentExpr;attempt scopeExpr;restParser] )
 
 
 
@@ -145,6 +149,7 @@ let test01 =
         
         public int Id { get; set; }
         public string Title { get; set; }
+        // mein comment
         public int Year { get; set; }
         public decimal Price { get; set; }
         public string AuthorName { get; set; }
@@ -172,7 +177,7 @@ let test02 =
     
     		
     		public string ConfirmationMailRecipient { get; set; }
-    		
+    		// mein Comment
     		public string ConfirmationMailCulture { get; set; }
     
     	
@@ -244,6 +249,5 @@ match test02 with
     processTree [result]
 | Failure (errorMsg,_,_) -> [ sprintf "Failure: %s" errorMsg ]
 
-    
     
 

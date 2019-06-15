@@ -16,6 +16,7 @@ let wordWithoutSpacesAndAllowedSpecialCharacters (c:char list):Parser<string,Nod
 type Expr =
     | Class of string * Expr list
     | Property of string * string
+    | Comment of string
     | Scope of Expr list
     | Rest of string
     | Nothing
@@ -55,6 +56,12 @@ let propertyNameExpr:Parser<string,NodeState> = spaces >>. wordWithoutSpaces .>>
 let propertyExpr:Parser<Expr,NodeState> = propertyTypeExpr .>>. propertyNameExpr .>> scopeExpr |>> (fun (x,y) -> Property (x,y))
 let manyPropertyExpr:Parser<Expr list,NodeState> = many1 ( propertyExpr )
 
+
+// Comment
+let commentExpr:Parser<Expr,NodeState> =
+    str "//" >>. many1 (satisfy (fun x -> x<>'\n')) |>> (fun l -> System.String(l |> List.toArray) |> Comment)
+
+// Class
 let classParseExpr, cassParseExprImpl = createParserForwardedToRef ()
 let classFullKeywordExpr:Parser<string,NodeState> = spaces >>. opt (privateExpr <|> publicExpr) >>. spaces >>. classKeywordExpr .>> spaces 
 
@@ -84,7 +91,7 @@ let classesExpr =
         classExpr
     )
 
-cassParseExprImpl := many1 (choice [attempt classExpr;attempt propertyExpr;scopeExpr;restParser] )
+cassParseExprImpl := many1 (choice [attempt classExpr;attempt propertyExpr;attempt commentExpr;scopeExpr;restParser] )
 
 
 module TreeProcessing =
